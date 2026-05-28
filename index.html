@@ -150,6 +150,53 @@
       font-size: 14px;
       margin-top: 14px;
     }
+
+    .status {
+      color: var(--muted);
+      font-size: 14px;
+      margin: -8px 0 18px;
+      min-height: 21px;
+    }
+
+    .result-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 160px) 1fr;
+      gap: 12px;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .result-row:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .result-label {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .result-value p:last-child,
+    .result-value ul:last-child {
+      margin-bottom: 0;
+    }
+
+    @media (max-width: 620px) {
+      main {
+        width: min(100% - 20px, 920px);
+        margin: 16px auto;
+      }
+
+      header,
+      .content {
+        padding: 22px 20px;
+      }
+
+      .result-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -157,7 +204,7 @@
     <header>
       <h1>Financial Accounting Knowledge Toolbox Quiz</h1>
       <p>Answer each question in free text as if explaining your reasoning to a manager, auditor, lender, or investor.</p>
-      <p class="note">This public static version shows the grading concepts after you submit. For automatic AI scoring, it needs to be connected to an AI backend.</p>
+      <p class="note">This version uses AI scoring when deployed with the included serverless backend.</p>
     </header>
 
     <section class="content">
@@ -165,16 +212,40 @@
       <div class="question" id="questionText"></div>
       <textarea id="answer" placeholder="Type your answer here..."></textarea>
       <div class="actions">
-        <button id="submitAnswer">Show Feedback Guide</button>
+        <button id="submitAnswer">Submit for AI Scoring</button>
         <button class="secondary" id="nextQuestion">Another Question</button>
       </div>
+      <p class="status" id="status"></p>
       <section class="feedback" id="feedback">
-        <h2>Feedback Guide</h2>
-        <p><strong>Score yourself out of 10:</strong> Excellent answers are accurate, complete, use accounting vocabulary correctly, explain why the concept matters, and include financial statement or ratio impacts where relevant.</p>
-        <h3>Key Concepts to Include</h3>
-        <ul id="keyConcepts"></ul>
-        <h3>Suggested Stronger Answer</h3>
-        <p id="modelAnswer"></p>
+        <h2>AI Feedback</h2>
+        <div class="result-row">
+          <div class="result-label">Score</div>
+          <div class="result-value" id="score"></div>
+        </div>
+        <div class="result-row">
+          <div class="result-label">Assessment</div>
+          <div class="result-value" id="assessment"></div>
+        </div>
+        <div class="result-row">
+          <div class="result-label">What You Did Well</div>
+          <div class="result-value"><ul id="strengths"></ul></div>
+        </div>
+        <div class="result-row">
+          <div class="result-label">Missing or Incorrect</div>
+          <div class="result-value"><ul id="weaknesses"></ul></div>
+        </div>
+        <div class="result-row">
+          <div class="result-label">Correct Logic</div>
+          <div class="result-value"><p id="correctLogic"></p></div>
+        </div>
+        <div class="result-row">
+          <div class="result-label">Stronger Answer</div>
+          <div class="result-value"><p id="strongerAnswer"></p></div>
+        </div>
+        <div class="result-row">
+          <div class="result-label">Coaching</div>
+          <div class="result-value"><p id="coaching"></p></div>
+        </div>
       </section>
     </section>
   </main>
@@ -485,29 +556,96 @@
 
     let currentQuestion = null;
 
+    const scoringEndpoint = window.AI_SCORING_ENDPOINT || "/.netlify/functions/score";
+    const submitButton = document.getElementById("submitAnswer");
+    const statusMessage = document.getElementById("status");
+    const feedbackPanel = document.getElementById("feedback");
+
     function chooseQuestion() {
       currentQuestion = questions[Math.floor(Math.random() * questions.length)];
       document.getElementById("questionMeta").textContent = currentQuestion.day;
       document.getElementById("questionText").textContent = currentQuestion.question;
       document.getElementById("answer").value = "";
-      document.getElementById("feedback").classList.remove("visible");
-      document.getElementById("keyConcepts").innerHTML = "";
-      document.getElementById("modelAnswer").textContent = "";
+      statusMessage.textContent = "";
+      feedbackPanel.classList.remove("visible");
+      clearFeedback();
     }
 
-    function showFeedback() {
-      const list = document.getElementById("keyConcepts");
+    function clearFeedback() {
+      document.getElementById("score").textContent = "";
+      document.getElementById("assessment").textContent = "";
+      document.getElementById("strengths").innerHTML = "";
+      document.getElementById("weaknesses").innerHTML = "";
+      document.getElementById("correctLogic").textContent = "";
+      document.getElementById("strongerAnswer").textContent = "";
+      document.getElementById("coaching").textContent = "";
+    }
+
+    function renderList(id, items) {
+      const list = document.getElementById(id);
       list.innerHTML = "";
-      currentQuestion.concepts.forEach((concept) => {
+      items.forEach((text) => {
         const item = document.createElement("li");
-        item.textContent = concept;
+        item.textContent = text;
         list.appendChild(item);
       });
-      document.getElementById("modelAnswer").textContent = currentQuestion.answer;
-      document.getElementById("feedback").classList.add("visible");
     }
 
-    document.getElementById("submitAnswer").addEventListener("click", showFeedback);
+    function renderFeedback(result) {
+      document.getElementById("score").textContent = `${result.score}/10`;
+      document.getElementById("assessment").textContent = result.assessment;
+      renderList("strengths", result.strengths || []);
+      renderList("weaknesses", result.weaknesses || []);
+      document.getElementById("correctLogic").textContent = result.correctAccountingLogic;
+      document.getElementById("strongerAnswer").textContent = result.strongerAnswer;
+      document.getElementById("coaching").textContent = result.coaching;
+      feedbackPanel.classList.add("visible");
+    }
+
+    async function scoreAnswer() {
+      const studentAnswer = document.getElementById("answer").value.trim();
+
+      if (!studentAnswer) {
+        statusMessage.textContent = "Please type an answer before submitting.";
+        return;
+      }
+
+      submitButton.disabled = true;
+      statusMessage.textContent = "Scoring your answer...";
+      feedbackPanel.classList.remove("visible");
+      clearFeedback();
+
+      try {
+        const response = await fetch(scoringEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            question: currentQuestion.question,
+            day: currentQuestion.day,
+            keyConcepts: currentQuestion.concepts,
+            modelAnswer: currentQuestion.answer,
+            studentAnswer
+          })
+        });
+
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(payload.error || "The scoring service is not available.");
+        }
+
+        renderFeedback(payload);
+        statusMessage.textContent = "";
+      } catch (error) {
+        statusMessage.textContent = `${error.message} If this is on GitHub Pages, deploy the included Netlify backend and set the function URL.`;
+      } finally {
+        submitButton.disabled = false;
+      }
+    }
+
+    submitButton.addEventListener("click", scoreAnswer);
     document.getElementById("nextQuestion").addEventListener("click", chooseQuestion);
     chooseQuestion();
   </script>
