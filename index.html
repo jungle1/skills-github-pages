@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Financial Accounting Knowledge Toolbox Quiz</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1c2430;
+      --muted: #5b6675;
+      --line: #d8dee8;
+      --surface: #ffffff;
+      --bg: #f4f7fb;
+      --accent: #176b87;
+      --accent-dark: #0f5268;
+      --soft: #e8f3f7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(920px, calc(100% - 32px));
+      margin: 32px auto;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 18px 45px rgba(30, 48, 73, 0.08);
+      overflow: hidden;
+    }
+
+    header {
+      padding: 28px 32px;
+      background: var(--soft);
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.15;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    .content {
+      padding: 28px 32px 32px;
+    }
+
+    .question-meta {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+    }
+
+    .question {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 14px;
+      font: inherit;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 18px 0 22px;
+    }
+
+    button {
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      color: #fff;
+      background: var(--accent);
+      cursor: pointer;
+    }
+
+    button.secondary {
+      color: var(--accent-dark);
+      background: #fff;
+    }
+
+    button:hover {
+      background: var(--accent-dark);
+      border-color: var(--accent-dark);
+    }
+
+    button.secondary:hover {
+      color: #fff;
+    }
+
+    .feedback {
+      display: none;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+
+    .feedback.visible {
+      display: block;
+    }
+
+    .feedback h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    .feedback h3 {
+      margin: 18px 0 8px;
+      font-size: 16px;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Financial Accounting Knowledge Toolbox Quiz</h1>
+      <p>Answer each question in free text as if explaining your reasoning to a manager, auditor, lender, or investor.</p>
+      <p class="note">This public static version shows the grading concepts after you submit. For automatic AI scoring, it needs to be connected to an AI backend.</p>
+    </header>
+
+    <section class="content">
+      <div class="question-meta" id="questionMeta"></div>
+      <div class="question" id="questionText"></div>
+      <textarea id="answer" placeholder="Type your answer here..."></textarea>
+      <div class="actions">
+        <button id="submitAnswer">Show Feedback Guide</button>
+        <button class="secondary" id="nextQuestion">Another Question</button>
+      </div>
+      <section class="feedback" id="feedback">
+        <h2>Feedback Guide</h2>
+        <p><strong>Score yourself out of 10:</strong> Excellent answers are accurate, complete, use accounting vocabulary correctly, explain why the concept matters, and include financial statement or ratio impacts where relevant.</p>
+        <h3>Key Concepts to Include</h3>
+        <ul id="keyConcepts"></ul>
+        <h3>Suggested Stronger Answer</h3>
+        <p id="modelAnswer"></p>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const questions = [
+      {
+        day: "Day 1",
+        question: "What is the role of accounting in society? What are some consequences if an asset or liability is mis-measured?",
+        concepts: ["Resource allocation", "Decision usefulness", "Trust and transparency", "Misstated profits, assets, or liabilities", "Poor lending or investing decisions", "Fraud risk"],
+        answer: "Accounting helps society allocate resources by giving investors, lenders, managers, and regulators useful and trustworthy information. If assets or liabilities are mis-measured, profit, equity, solvency, and risk can be distorted. This may lead to poor lending or investment decisions, lower trust, higher financing costs, or even fraud."
+      },
+      {
+        day: "Day 1",
+        question: "How is an accountant like a news journalist?",
+        concepts: ["Gathering information", "Verification", "Objectivity", "Reliability", "Public trust", "Accounting standards"],
+        answer: "An accountant is like a journalist because both gather information, verify evidence, report objectively, and serve users who rely on trustworthy information. Accounting standards are like reporting rules that support consistency, reliability, and public trust."
+      },
+      {
+        day: "Day 1",
+        question: "What is the strength of using historical cost when measuring an asset like an office building?",
+        concepts: ["Verifiable", "Objective", "Reliable", "Less estimation bias"],
+        answer: "Historical cost is strong because it is based on an actual transaction price, making it objective, verifiable, and less vulnerable to estimation bias. Its weakness is that it may become less relevant as market values change."
+      },
+      {
+        day: "Day 1",
+        question: "What is the strength of using fair market value when measuring an asset like an office building?",
+        concepts: ["Relevance", "Current economic value", "Better for decisions", "Market conditions"],
+        answer: "Fair market value can be more relevant because it reflects current economic conditions and the asset's current value. It may help users make better decisions, although it can involve estimation uncertainty if active market prices are unavailable."
+      },
+      {
+        day: "Day 1",
+        question: "Why is revenue not recorded when cash is collected?",
+        concepts: ["Accrual accounting", "Performance obligations", "Earned revenue", "Revenue recognition principle"],
+        answer: "Revenue is recognized when it is earned, usually when control transfers or a performance obligation is satisfied, not simply when cash is received. Cash collected before performance creates a liability such as deferred revenue."
+      },
+      {
+        day: "Day 1",
+        question: "If qualitative characteristics are missing from financial statements, how might users adjust decisions? Include friction.",
+        concepts: ["Lower trust", "Higher risk", "Increased borrowing cost", "Market friction", "Lower valuation"],
+        answer: "If financial statements lack relevance, faithful representation, comparability, or understandability, users trust them less. That creates market friction: investors may demand a lower valuation, lenders may charge higher rates, and decisions become slower or more cautious."
+      },
+      {
+        day: "Day 1",
+        question: "Why is Net Income a poor measure of managerial performance and future profits?",
+        concepts: ["Estimates", "One-time items", "Earnings management", "Non-cash items", "Lack of predictability"],
+        answer: "Net income can be a poor measure because it includes estimates, accruals, non-cash items, one-time gains or losses, and possible earnings management. These factors may not reflect core operating performance or future profitability."
+      },
+      {
+        day: "Day 1",
+        question: "Is Profit Before Tax a good measure of future performance?",
+        concepts: ["Better than net income", "Still includes estimates", "Still imperfect"],
+        answer: "Profit before tax can be useful because it removes the effect of tax differences, but it is still imperfect. It can still include accounting estimates, one-time items, non-cash expenses, and managed earnings."
+      },
+      {
+        day: "Day 1",
+        question: "What do Special Items, EBIT, and EBITDA have in common?",
+        concepts: ["Adjusted performance measures", "Core operations", "Excluding certain items"],
+        answer: "They are adjusted performance measures used to analyze operating or recurring performance by excluding certain items. Users should understand what is excluded and whether the measure fairly reflects the business."
+      },
+      {
+        day: "Day 1",
+        question: "Why should KPIs be viewed skeptically?",
+        concepts: ["Non-GAAP", "Unaudited", "Selective", "Potential bias"],
+        answer: "KPIs should be viewed skeptically because they may be non-GAAP, unaudited, selectively chosen, and presented in a way that favors management's story. They can be useful, but users must check definitions and consistency."
+      },
+      {
+        day: "Day 1",
+        question: "What is the role of auditors?",
+        concepts: ["Independent assurance", "Fair presentation", "Material misstatement"],
+        answer: "Auditors provide independent assurance that financial statements are fairly presented in accordance with the applicable accounting framework and are free from material misstatement, whether caused by error or fraud."
+      },
+      {
+        day: "Day 1",
+        question: "Why read the audit report first?",
+        concepts: ["Audit opinion", "Going concern", "Warnings", "Key audit matters"],
+        answer: "The audit report should be read first because it tells users the auditor's opinion and highlights major risks such as going concern uncertainty, qualifications, emphasis of matter, or key audit matters."
+      },
+      {
+        day: "Day 1",
+        question: "When is revenue recognized?",
+        concepts: ["Control transfers", "Performance obligations satisfied"],
+        answer: "Revenue is recognized when the company satisfies a performance obligation, usually when control of goods or services transfers to the customer."
+      },
+      {
+        day: "Day 1",
+        question: "Why is revenue recognition a common fraud area?",
+        concepts: ["Direct impact on profit", "Bonuses", "Stock price", "Debt covenants", "Timing manipulation"],
+        answer: "Revenue recognition is a common fraud area because revenue directly affects profit, growth, bonuses, stock price, and debt covenant compliance. Management may manipulate timing by recording revenue too early or for transactions that are not valid."
+      },
+      {
+        day: "Day 1",
+        question: "Explain materiality.",
+        concepts: ["Depends on size and nature", "Judgment-based", "Context matters"],
+        answer: "Materiality means information is important enough to influence a user's decision. It depends on size, nature, and context, so it requires judgment rather than a single fixed threshold."
+      },
+      {
+        day: "Day 1",
+        question: "Explain Gross vs Net Accounts Receivable.",
+        concepts: ["Allowance for doubtful accounts", "Expected collectible amount"],
+        answer: "Gross accounts receivable is the total amount customers owe. Net accounts receivable subtracts the allowance for doubtful accounts and represents the amount expected to be collected."
+      },
+      {
+        day: "Day 1",
+        question: "What is the debt ratio?",
+        concepts: ["Liabilities divided by assets", "Financial leverage", "Financial risk"],
+        answer: "The debt ratio is total liabilities divided by total assets. It measures how much of the company's assets are financed by debt and indicates financial leverage and risk."
+      },
+      {
+        day: "Day 2",
+        question: "What costs are included in manufacturing inventory?",
+        concepts: ["Raw materials", "Direct labor", "Manufacturing overhead", "Freight-in"],
+        answer: "Manufacturing inventory includes raw materials, direct labor, manufacturing overhead, and necessary costs such as freight-in that bring inventory to its intended condition and location."
+      },
+      {
+        day: "Day 2",
+        question: "What is the impact of Lower of Cost or Market?",
+        concepts: ["Inventory down", "Profit down", "Equity down", "Ratios affected"],
+        answer: "Lower of cost or market writes inventory down when its market value falls below cost. This reduces inventory, increases expense or loss, lowers profit and equity, and can affect ratios such as current ratio, gross margin, and return on assets."
+      },
+      {
+        day: "Day 2",
+        question: "What events may require LCM adjustment?",
+        concepts: ["Obsolescence", "Damage", "Falling prices", "Weak demand"],
+        answer: "LCM adjustments may be needed when inventory becomes obsolete, damaged, overpriced relative to current market prices, or harder to sell because demand has weakened."
+      },
+      {
+        day: "Day 2",
+        question: "What inventory risks arise during difficult economic conditions?",
+        concepts: ["Earnings management", "Delayed write-downs", "Overstated inventory", "Capitalization manipulation"],
+        answer: "Difficult conditions increase inventory risk because demand and prices may fall. Management may delay write-downs, overstate inventory, or capitalize costs improperly to protect earnings."
+      },
+      {
+        day: "Day 2",
+        question: "What costs should be capitalized into an asset?",
+        concepts: ["Necessary acquisition or preparation costs", "Installation", "Testing", "Conversion costs", "Exclude training, maintenance, and marketing"],
+        answer: "Capitalized costs are necessary costs to acquire the asset and prepare it for intended use, such as purchase price, installation, testing, freight, and conversion costs. Training, maintenance, and marketing are usually expensed."
+      },
+      {
+        day: "Day 2",
+        question: "How can managers manipulate earnings using PPE?",
+        concepts: ["Depreciation", "Useful life", "Residual value", "Capitalization", "Impairments"],
+        answer: "Managers can manipulate earnings through PPE by changing useful lives, residual values, depreciation methods, capitalization decisions, or impairment timing. These choices affect expenses, asset values, profit, and ratios."
+      },
+      {
+        day: "Day 2",
+        question: "Explain Big Bath.",
+        concepts: ["Large write-offs", "Future profit improvement", "Earnings management"],
+        answer: "A Big Bath occurs when management records unusually large write-offs or expenses in a bad year, making current results worse but improving future profits because future expenses are reduced."
+      },
+      {
+        day: "Day 2",
+        question: "Why would an asset become impaired?",
+        concepts: ["Obsolescence", "Damage", "Demand decline", "Legal changes"],
+        answer: "An asset becomes impaired when its carrying value is no longer recoverable. Causes include obsolescence, damage, falling demand, legal restrictions, technological change, or poor economic performance."
+      },
+      {
+        day: "Day 2",
+        question: "Name liabilities based on estimates.",
+        concepts: ["Warranty provisions", "Pension liabilities", "Debt covenant pressure"],
+        answer: "Estimated liabilities include warranty provisions, pension obligations, legal provisions, environmental obligations, restructuring provisions, and bad debt allowances. These require judgment about future costs or obligations."
+      },
+      {
+        day: "Day 2",
+        question: "Provision vs Contingent Liability.",
+        concepts: ["Probability", "Measurability", "Recognition vs disclosure"],
+        answer: "A provision is recognized when an obligation is probable and can be reasonably estimated. A contingent liability is usually disclosed rather than recognized when the outcome is uncertain or cannot be measured reliably."
+      },
+      {
+        day: "Day 2",
+        question: "What do warranty liabilities and bad debt allowances have in common?",
+        concepts: ["Estimates", "Future expected costs", "Matching principle"],
+        answer: "Both are estimates of future costs related to current sales or receivables. They apply accrual accounting and the matching principle by recognizing expected losses before cash is paid or written off."
+      },
+      {
+        day: "Day 2",
+        question: "Why are warranty expenses and bad debt expenses recognized before payment?",
+        concepts: ["Matching principle", "Accrual accounting"],
+        answer: "They are recognized before payment because accrual accounting matches expenses with the related revenue period. Waiting until cash is paid would overstate profit in the sale period."
+      },
+      {
+        day: "Day 2",
+        question: "What happens when receivables are written off or warranties paid?",
+        concepts: ["No new expense", "Balance sheet accounts reduced"],
+        answer: "When receivables are written off or warranties are paid, there is usually no new expense if the allowance or liability was already recorded. The company reduces balance sheet accounts such as allowance, receivables, warranty liability, or cash."
+      },
+      {
+        day: "Day 2",
+        question: "Why are lawsuits disclosed unclearly?",
+        concepts: ["Uncertainty", "Legal strategy", "Reduced transparency"],
+        answer: "Lawsuits are often disclosed unclearly because outcomes and amounts are uncertain, and detailed disclosure could harm the company's legal strategy. This can reduce transparency for users."
+      },
+      {
+        day: "Day 3",
+        question: "Why is identifying liabilities important?",
+        concepts: ["Hidden risk", "Distorted profits", "Investor and lender trust", "Retroactive damage"],
+        answer: "Identifying liabilities is important because unrecorded obligations hide risk, overstate equity or profit, distort ratios, and damage investor and lender trust when later discovered."
+      },
+      {
+        day: "Day 3",
+        question: "Why does equity increase or decrease?",
+        concepts: ["Profit", "Owner investment", "Losses", "Dividends", "Impairments"],
+        answer: "Equity increases through profits and owner contributions. It decreases through losses, dividends or distributions, impairments, and other reductions in net assets."
+      },
+      {
+        day: "Day 3",
+        question: "Why is book value different from market value?",
+        concepts: ["Historical cost", "Intangibles", "Future expectations", "Market psychology"],
+        answer: "Book value is based on accounting measurements such as historical cost and recognized assets and liabilities. Market value reflects investor expectations, unrecorded intangibles, risk, future cash flows, and market sentiment."
+      },
+      {
+        day: "Day 3",
+        question: "How can earnings management occur?",
+        concepts: ["Revenue timing", "Understated expenses", "Delayed write-downs", "Useful life manipulation"],
+        answer: "Earnings management can occur through aggressive revenue timing, understated expenses, delayed write-downs, changing useful lives or residual values, capitalization choices, and biased estimates."
+      },
+      {
+        day: "Day 3",
+        question: "Why does earnings management harm decisions?",
+        concepts: ["Distorted information", "Poor resource allocation"],
+        answer: "Earnings management harms decisions because it distorts financial information. Investors, lenders, and managers may allocate resources poorly because reported performance does not reflect economic reality."
+      },
+      {
+        day: "Day 3",
+        question: "What management behaviors are red flags?",
+        concepts: ["Unrealistic targets", "Fear culture", "Bonus pressure", "Dominant leadership"],
+        answer: "Red flags include unrealistic targets, pressure to meet bonuses or covenants, a fear-based culture, dominant leadership, weak controls, lack of transparency, and discouraging questions."
+      },
+      {
+        day: "Day 3",
+        question: "How do debt covenants increase earnings management risk?",
+        concepts: ["Pressure to meet ratios", "Manipulated accounting"],
+        answer: "Debt covenants increase earnings management risk because managers may feel pressure to meet required ratios or avoid default. They may manipulate revenue, expenses, estimates, impairments, or capitalization to make results look stronger."
+      },
+      {
+        day: "Day 3",
+        question: "What are indicators of earnings management?",
+        concepts: ["Smooth earnings", "Weak cash flow", "Large adjustments", "Aggressive revenue"],
+        answer: "Indicators include unusually smooth earnings, profit growth without cash flow support, large year-end adjustments, aggressive revenue recognition, delayed write-downs, and frequent changes in estimates."
+      },
+      {
+        day: "Day 3",
+        question: "What external earnings pressures can affect management?",
+        concepts: ["Recession", "Competition", "Interest rates"],
+        answer: "External pressures include recession, competition, inflation, rising interest rates, declining demand, analyst expectations, covenant pressure, and investor pressure."
+      },
+      {
+        day: "Day 3",
+        question: "How can management reduce earnings management?",
+        concepts: ["Ethics", "Controls", "Transparency", "Realistic targets"],
+        answer: "Management can reduce earnings management through strong ethics, realistic targets, transparent reporting, independent oversight, effective internal controls, and compensation plans that do not reward short-term manipulation."
+      },
+      {
+        day: "Day 3",
+        question: "During economic decline, should management focus on sales or cost control?",
+        concepts: ["Cash flow", "Cost control", "Margin preservation", "Survival"],
+        answer: "During economic decline, management usually needs both revenue discipline and cost control, but cash flow, margin preservation, and survival become especially important. Sales growth that destroys margin or cash may not help the business."
+      },
+      {
+        day: "Day 4",
+        question: "Explain the Fraud Triangle.",
+        concepts: ["Pressure", "Opportunity", "Rationalization"],
+        answer: "The Fraud Triangle explains that fraud risk increases when pressure, opportunity, and rationalization are present. Pressure creates motivation, opportunity allows the fraud, and rationalization helps the person justify it."
+      },
+      {
+        day: "Day 4",
+        question: "What employee fraud red flags should managers watch for?",
+        concepts: ["Living beyond means", "Refusal to share duties", "No vacation", "Financial stress", "Secretive behavior"],
+        answer: "Red flags include living beyond means, financial stress, refusing to share duties, never taking vacation, secretive behavior, unusual control over records, and defensiveness when questioned."
+      },
+      {
+        day: "Day 4",
+        question: "What is the most damaging cost of fraud?",
+        concepts: ["Loss of trust", "Reputation damage"],
+        answer: "The most damaging cost of fraud is often loss of trust. Reputational damage can harm customer relationships, lender confidence, employee morale, and long-term business value."
+      },
+      {
+        day: "Day 4",
+        question: "Explain Buffett's Institutional Imperative.",
+        concepts: ["Mimicking peers", "Defending mistakes", "Excess cash misuse", "Unrealistic projections"],
+        answer: "Buffett's Institutional Imperative describes how organizations tend to imitate peers, defend past mistakes, misuse excess cash, and accept unrealistic projections. It warns managers and lenders to question groupthink and poor capital allocation."
+      },
+      {
+        day: "Day 4",
+        question: "Why does Buffett discuss mistakes?",
+        concepts: ["Learning", "Humility", "Credibility", "Better decisions"],
+        answer: "Buffett discusses mistakes to show humility, encourage learning, build credibility, and improve future decisions. Acknowledging errors helps investors evaluate management honesty and judgment."
+      },
+      {
+        day: "Day 4",
+        question: "What companies does Buffett prefer?",
+        concepts: ["Competitive advantage", "Strong management", "Predictable cash flow", "Low unnecessary debt"],
+        answer: "Buffett prefers companies with durable competitive advantages, strong and honest management, predictable cash flows, good economics, and limited unnecessary debt."
+      },
+      {
+        day: "Day 4",
+        question: "Why are Buffett's Business and Management Tenets useful in lending?",
+        concepts: ["Management integrity", "Long-term viability", "Credit risk"],
+        answer: "They are useful in lending because they help assess management integrity, business durability, cash flow quality, debt discipline, and long-term credit risk."
+      },
+      {
+        day: "Day 4",
+        question: "What is Buffett's secret to success?",
+        concepts: ["Patience", "Discipline", "Long-term thinking", "Emotional control", "Continuous learning"],
+        answer: "Buffett's success comes from patience, discipline, long-term thinking, emotional control, continuous learning, and investing in understandable businesses with strong economics."
+      }
+    ];
+
+    let currentQuestion = null;
+
+    function chooseQuestion() {
+      currentQuestion = questions[Math.floor(Math.random() * questions.length)];
+      document.getElementById("questionMeta").textContent = currentQuestion.day;
+      document.getElementById("questionText").textContent = currentQuestion.question;
+      document.getElementById("answer").value = "";
+      document.getElementById("feedback").classList.remove("visible");
+      document.getElementById("keyConcepts").innerHTML = "";
+      document.getElementById("modelAnswer").textContent = "";
+    }
+
+    function showFeedback() {
+      const list = document.getElementById("keyConcepts");
+      list.innerHTML = "";
+      currentQuestion.concepts.forEach((concept) => {
+        const item = document.createElement("li");
+        item.textContent = concept;
+        list.appendChild(item);
+      });
+      document.getElementById("modelAnswer").textContent = currentQuestion.answer;
+      document.getElementById("feedback").classList.add("visible");
+    }
+
+    document.getElementById("submitAnswer").addEventListener("click", showFeedback);
+    document.getElementById("nextQuestion").addEventListener("click", chooseQuestion);
+    chooseQuestion();
+  </script>
+</body>
+</html>
